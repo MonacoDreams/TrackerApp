@@ -3,28 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Simple Tracker</title>
+<title>Tracker Pro</title>
 <style>
-body{font-family:Arial;background:#0f0f0f;color:#fff;max-width:500px;margin:auto;padding:15px}
-.section{background:#1c1c1c;padding:12px;border-radius:10px;margin-bottom:15px}
-input,button,textarea{width:100%;margin:6px 0;padding:10px;border-radius:6px;border:none;font-size:14px}
-button{background:#28a745;color:white}
-h2{margin:5px 0 10px}
-.small{font-size:13px;color:#bbb}
+body{font-family:Arial;background:#0f172a;color:#e5e7eb;max-width:520px;margin:auto;padding:15px}
+h1{text-align:center}
+.section{background:#111827;padding:15px;border-radius:12px;margin-bottom:15px;box-shadow:0 4px 10px rgba(0,0,0,0.3)}
+input,button,textarea,select{width:100%;margin:6px 0;padding:10px;border-radius:8px;border:none;font-size:14px}
+button{background:#22c55e;color:white;font-weight:bold}
 .total{font-weight:bold;margin-top:8px}
+.small{font-size:13px;color:#9ca3af;white-space:pre-line}
 </style>
 </head>
 <body>
 
-<h1>🔥 Simple Tracker</h1>
+<h1>🔥 Tracker Pro</h1>
 <input type="date" id="date">
 
 <div class="section">
-<h2>🥗 Macros</h2>
+<h2>🥗 Food + Macros</h2>
+<input type="text" id="food" placeholder="Food (e.g. rice, eggs)">
 <input type="number" id="protein" placeholder="Protein g">
 <input type="number" id="carbs" placeholder="Carbs g">
 <input type="number" id="fats" placeholder="Fats g">
 <button onclick="addMacros()">Add</button>
+<div id="macroList" class="small"></div>
 <div class="total" id="macroTotal"></div>
 </div>
 
@@ -45,9 +47,23 @@ h2{margin:5px 0 10px}
 </div>
 
 <div class="section">
-<h2>🧠 Note</h2>
+<h2>🧠 Note + Mood</h2>
+<select id="mood">
+<option>😐 Neutral</option>
+<option>🔥 Motivated</option>
+<option>😤 Tired</option>
+<option>😄 Happy</option>
+<option>😔 Low</option>
+</select>
 <textarea id="note" rows="3" placeholder="Your day..."></textarea>
 <button onclick="saveNote()">Save</button>
+<div id="noteDisplay" class="small"></div>
+</div>
+
+<div class="section">
+<h2>☁️ Backup</h2>
+<button onclick="exportData()">Download Backup</button>
+<input type="file" onchange="importData(event)">
 </div>
 
 <script>
@@ -56,16 +72,29 @@ const save=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
 const load=(k)=>JSON.parse(localStorage.getItem(k))||[];
 
 function addMacros(){
- let p=+protein.value,c=+carbs.value,f=+fats.value;
- let d=load(key('m')); d.push({p,c,f}); save(key('m'),d);
- renderMacros(); protein.value=carbs.value=fats.value='';
+ let entry={
+  food:food.value,
+  p:+protein.value,
+  c:+carbs.value,
+  f:+fats.value
+ };
+ let d=load(key('m'));
+ d.push(entry);
+ save(key('m'),d);
+ renderMacros();
+ food.value=protein.value=carbs.value=fats.value='';
 }
 
 function renderMacros(){
  let d=load(key('m'));
- let p=0,c=0,f=0; d.forEach(x=>{p+=x.p;c+=x.c;f+=x.f});
+ let p=0,c=0,f=0;
+ let list=d.map(x=>{
+  p+=x.p;c+=x.c;f+=x.f;
+  return `${x.food} → P:${x.p} C:${x.c} F:${x.f}`;
+ }).join('\n');
  let cal=p*4+c*4+f*9;
- macroTotal.innerText=`P:${p} C:${c} F:${f} | ${cal} kcal`;
+ macroList.innerText=list;
+ macroTotal.innerText=`Total → P:${p} C:${c} F:${f} | ${cal} kcal`;
 }
 
 function addWorkout(){
@@ -80,7 +109,8 @@ function addMoney(){
  let d=load(key('€'));
  d.push(+amount.value);
  save(key('€'),d);
- renderMoney(); amount.value=source.value='';
+ renderMoney();
+ amount.value=source.value='';
 }
 
 function renderMoney(){
@@ -90,8 +120,35 @@ function renderMoney(){
 }
 
 function saveNote(){
- localStorage.setItem(key('n'),note.value);
+ let data={mood:mood.value,text:note.value};
+ localStorage.setItem(key('n'),JSON.stringify(data));
+ renderNote();
  note.value='';
+}
+
+function renderNote(){
+ let d=JSON.parse(localStorage.getItem(key('n'))||'null');
+ if(d) noteDisplay.innerText=`${d.mood}\n${d.text}`;
+}
+
+function exportData(){
+ let data=JSON.stringify(localStorage);
+ let blob=new Blob([data],{type:"application/json"});
+ let a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download='tracker-backup.json';
+ a.click();
+}
+
+function importData(e){
+ let file=e.target.files[0];
+ let reader=new FileReader();
+ reader.onload=function(){
+  let data=JSON.parse(reader.result);
+  Object.keys(data).forEach(k=>localStorage.setItem(k,data[k]));
+  location.reload();
+ };
+ reader.readAsText(file);
 }
 
 // init
@@ -100,7 +157,7 @@ window.onload=()=>{
  renderMacros();
  workoutList.innerText=load(key('w')).join('\n');
  renderMoney();
- note.value=localStorage.getItem(key('n'))||'';
+ renderNote();
 }
 </script>
 
