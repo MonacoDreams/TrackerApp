@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simple Tracker</title>
+<style>
+body{font-family:Arial;background:#0f0f0f;color:#fff;max-width:500px;margin:auto;padding:15px}
+.section{background:#1c1c1c;padding:12px;border-radius:10px;margin-bottom:15px}
+input,button,textarea{width:100%;margin:6px 0;padding:10px;border-radius:6px;border:none;font-size:14px}
+button{background:#28a745;color:white}
+h2{margin:5px 0 10px}
+.small{font-size:13px;color:#bbb}
+.total{font-weight:bold;margin-top:8px}
+</style>
+</head>
+<body>
+
+<h1>🔥 Simple Tracker</h1>
+<input type="date" id="date">
+
+<div class="section">
+<h2>🥗 Macros</h2>
+<input type="number" id="protein" placeholder="Protein g">
+<input type="number" id="carbs" placeholder="Carbs g">
+<input type="number" id="fats" placeholder="Fats g">
+<button onclick="addMacros()">Add</button>
+<div class="total" id="macroTotal"></div>
+</div>
+
+<div class="section">
+<h2>🏋️ Workout</h2>
+<input type="text" id="exercise" placeholder="Exercise">
+<input type="text" id="workoutSimple" placeholder="e.g. 3x8 @ 60kg">
+<button onclick="addWorkout()">Add</button>
+<div id="workoutList" class="small"></div>
+</div>
+
+<div class="section">
+<h2>💰 Money</h2>
+<input type="number" id="amount" placeholder="€">
+<input type="text" id="source" placeholder="Source">
+<button onclick="addMoney()">Add</button>
+<div id="moneyTotal" class="total"></div>
+</div>
+
+<div class="section">
+<h2>🧠 Note</h2>
+<textarea id="note" rows="3" placeholder="Your day..."></textarea>
+<button onclick="saveNote()">Save</button>
+</div>
+
+<script>
+const key=(t)=>t+'_'+date.value;
+const save=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
+const load=(k)=>JSON.parse(localStorage.getItem(k))||[];
+
+function addMacros(){
+ let p=+protein.value,c=+carbs.value,f=+fats.value;
+ let d=load(key('m')); d.push({p,c,f}); save(key('m'),d);
+ renderMacros(); protein.value=carbs.value=fats.value='';
+}
+
+function renderMacros(){
+ let d=load(key('m'));
+ let p=0,c=0,f=0; d.forEach(x=>{p+=x.p;c+=x.c;f+=x.f});
+ let cal=p*4+c*4+f*9;
+ macroTotal.innerText=`P:${p} C:${c} F:${f} | ${cal} kcal`;
+}
+
+function addWorkout(){
+ let d=load(key('w'));
+ d.push(`${exercise.value} - ${workoutSimple.value}`);
+ save(key('w'),d);
+ workoutList.innerText=d.join('\n');
+ exercise.value=workoutSimple.value='';
+}
+
+function addMoney(){
+ let d=load(key('€'));
+ d.push(+amount.value);
+ save(key('€'),d);
+ renderMoney(); amount.value=source.value='';
+}
+
+function renderMoney(){
+ let d=load(key('€'));
+ let total=d.reduce((a,b)=>a+b,0);
+ moneyTotal.innerText=`Total: €${total}`;
+}
+
+function saveNote(){
+ localStorage.setItem(key('n'),note.value);
+ note.value='';
+}
+
+// init
+date.valueAsDate=new Date();
+window.onload=()=>{
+ renderMacros();
+ workoutList.innerText=load(key('w')).join('\n');
+ renderMoney();
+ note.value=localStorage.getItem(key('n'))||'';
+}
+</script>
+
+</body>
+</html>
