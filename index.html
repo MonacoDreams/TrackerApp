@@ -14,6 +14,7 @@ button{background:#22c55e;color:white;font-weight:bold}
 .small{font-size:13px;color:#9ca3af;white-space:pre-line}
 .lock{opacity:0.6}
 .proUnlocked{opacity:1;border:2px solid #22c55e}
+.history-item{border-bottom:1px solid #1f2937;padding:6px 0}
 </style>
 </head>
 <body>
@@ -68,6 +69,11 @@ button{background:#22c55e;color:white;font-weight:bold}
 <div id="noteDisplay" class="small"></div>
 </div>
 
+<div class="section">
+<h2>📊 History (Last 7 Days)</h2>
+<div id="historyList" class="small"></div>
+</div>
+
 <div class="section lock" id="proBox">
 <h2>🔒 Pro Features</h2>
 <p class="small">Unlock: Hardcore Mode (streak penalties), Weekly Report</p>
@@ -75,19 +81,22 @@ button{background:#22c55e;color:white;font-weight:bold}
 </div>
 
 <script>
-const key=(t)=>t+'_'+date.value;
+const key=(t,d)=>t+'_'+d;
 const save=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
 const load=(k)=>JSON.parse(localStorage.getItem(k))||[];
 
+function getDate(){ return date.value; }
+function getToday(){ return new Date().toISOString().split('T')[0]; }
+
 function addMacros(){
  let entry={food:food.value,p:+protein.value,c:+carbs.value,f:+fats.value};
- let d=load(key('m')); d.push(entry); save(key('m'),d);
- renderMacros(); updateScore();
+ let d=load(key('m',getDate())); d.push(entry); save(key('m',getDate()),d);
+ renderMacros(); updateScore(); renderHistory();
  food.value=protein.value=carbs.value=fats.value='';
 }
 
 function renderMacros(){
- let d=load(key('m'));
+ let d=load(key('m',getDate()));
  let p=0,c=0,f=0;
  let list=d.map(x=>{p+=x.p;c+=x.c;f+=x.f;return `${x.food} → P:${x.p} C:${x.c} F:${x.f}`}).join('\n');
  let cal=p*4+c*4+f*9;
@@ -96,51 +105,51 @@ function renderMacros(){
 }
 
 function addWorkout(){
- let d=load(key('w'));
+ let d=load(key('w',getDate()));
  d.push(`${exercise.value} - ${workoutSimple.value}`);
- save(key('w'),d);
+ save(key('w',getDate()),d);
  workoutList.innerText=d.join('\n');
- updateScore();
+ updateScore(); renderHistory();
  exercise.value=workoutSimple.value='';
 }
 
 function addMoney(){
- let d=load(key('€'));
+ let d=load(key('€',getDate()));
  d.push(+amount.value);
- save(key('€'),d);
- renderMoney(); updateScore();
+ save(key('€',getDate()),d);
+ renderMoney(); updateScore(); renderHistory();
  amount.value=source.value='';
 }
 
 function renderMoney(){
- let d=load(key('€'));
+ let d=load(key('€',getDate()));
  let total=d.reduce((a,b)=>a+b,0);
  moneyTotal.innerText=`Total: €${total}`;
 }
 
 function saveNote(){
  let data={mood:mood.value,text:note.value};
- localStorage.setItem(key('n'),JSON.stringify(data));
- renderNote(); updateScore();
+ localStorage.setItem(key('n',getDate()),JSON.stringify(data));
+ renderNote(); updateScore(); renderHistory();
  note.value='';
 }
 
 function renderNote(){
- let d=JSON.parse(localStorage.getItem(key('n'))||'null');
+ let d=JSON.parse(localStorage.getItem(key('n',getDate()))||'null');
  if(d) noteDisplay.innerText=`${d.mood}\n${d.text}`;
 }
 
-function getToday(){
- return new Date().toISOString().split('T')[0];
+function calculateScore(d){
+ let score=0;
+ if(load(key('m',d)).length>0) score+=25;
+ if(load(key('w',d)).length>0) score+=25;
+ if(load(key('€',d)).length>0) score+=25;
+ if(localStorage.getItem(key('n',d))) score+=25;
+ return score;
 }
 
 function updateScore(){
- let score=0;
- if(load(key('m')).length>0) score+=25;
- if(load(key('w')).length>0) score+=25;
- if(load(key('€')).length>0) score+=25;
- if(localStorage.getItem(key('n'))) score+=25;
-
+ let score=calculateScore(getDate());
  scoreDisplay.innerText=`Score: ${score}/100`;
  updateStreak(score);
 }
@@ -150,32 +159,37 @@ function updateStreak(score){
  let lastDate=localStorage.getItem('lastFullDay');
  let today=getToday();
 
- if(score===100){
+ if(score===100 && getDate()===today){
    if(lastDate){
      let diff=(new Date(today)-new Date(lastDate))/(1000*60*60*24);
-     if(diff===1){
-       streak++;
-     } else if(diff>1){
-       streak=1; // missed day → reset
-     }
-   } else {
-     streak=1;
-   }
+     if(diff===1){ streak++; }
+     else if(diff>1){ streak=1; }
+   } else { streak=1; }
    localStorage.setItem('lastFullDay',today);
    localStorage.setItem('streak',streak);
  }
 
- streakDisplay.innerText=`Streak: ${streak} days`;
-
- // Hardcore penalty if Pro
  if(localStorage.getItem('pro')==='true' && score<100 && lastDate!==today){
+   streak=0;
    localStorage.setItem('streak',0);
-   streakDisplay.innerText=`Streak: 0 (missed day)`;
  }
+
+ streakDisplay.innerText=`Streak: ${streak} days`;
+}
+
+function renderHistory(){
+ let list='';
+ for(let i=0;i<7;i++){
+   let d=new Date();
+   d.setDate(d.getDate()-i);
+   let ds=d.toISOString().split('T')[0];
+   let score=calculateScore(ds);
+   list+=`<div class='history-item'>${ds} → ${score}/100</div>`;
+ }
+ historyList.innerHTML=list;
 }
 
 function buyPro(){
- // DEMO payment simulation
  localStorage.setItem('pro','true');
  document.getElementById('proBox').classList.remove('lock');
  document.getElementById('proBox').classList.add('proUnlocked');
@@ -186,10 +200,11 @@ function buyPro(){
 date.valueAsDate=new Date();
 window.onload=()=>{
  renderMacros();
- workoutList.innerText=load(key('w')).join('\n');
+ workoutList.innerText=load(key('w',getDate())).join('\n');
  renderMoney();
  renderNote();
  updateScore();
+ renderHistory();
  if(localStorage.getItem('pro')==='true'){
    document.getElementById('proBox').classList.remove('lock');
    document.getElementById('proBox').classList.add('proUnlocked');
