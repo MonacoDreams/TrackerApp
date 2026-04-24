@@ -3,23 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tracker Pro</title>
+<title>BuildYourself</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-body{font-family:Arial;background:#0f172a;color:#e5e7eb;max-width:520px;margin:auto;padding:15px}
-h1{text-align:center}
-.section{background:#111827;padding:15px;border-radius:12px;margin-bottom:15px;box-shadow:0 4px 10px rgba(0,0,0,0.3)}
-input,button,textarea,select{width:100%;margin:6px 0;padding:10px;border-radius:8px;border:none;font-size:14px}
-button{background:#22c55e;color:white;font-weight:bold}
-.total{font-weight:bold;margin-top:8px}
+body{
+ font-family:'Inter',sans-serif;
+ background:linear-gradient(180deg,#0f172a,#020617);
+ color:#e5e7eb;
+ max-width:520px;
+ margin:auto;
+ padding:15px
+}
+
+h1{
+ text-align:center;
+ font-weight:700;
+ letter-spacing:1px;
+ margin-bottom:10px
+}
+
+.section{
+ background:rgba(17,24,39,0.8);
+ backdrop-filter:blur(10px);
+ padding:16px;
+ border-radius:16px;
+ margin-bottom:15px;
+ box-shadow:0 8px 20px rgba(0,0,0,0.4)
+}
+
+input,button,textarea,select{
+ width:100%;
+ margin:6px 0;
+ padding:12px;
+ border-radius:10px;
+ border:none;
+ font-size:14px;
+ background:#1f2937;
+ color:#fff
+}
+
+input:focus,textarea:focus,select:focus{
+ outline:2px solid #22c55e
+}
+
+button{
+ background:linear-gradient(135deg,#22c55e,#16a34a);
+ font-weight:600;
+ transition:0.2s
+}
+
+button:hover{
+ transform:scale(1.02);
+}
+
+.total{font-weight:700;margin-top:8px}
 .small{font-size:13px;color:#9ca3af;white-space:pre-line}
-.lock{opacity:0.6}
-.proUnlocked{opacity:1;border:2px solid #22c55e}
-.history-item{border-bottom:1px solid #1f2937;padding:6px 0}
+
+.tabs{
+ display:flex;
+ gap:6px;
+ margin-bottom:12px
+}
+
+.tab{
+ flex:1;
+ text-align:center;
+ padding:10px;
+ border-radius:12px;
+ background:#1f2937;
+ cursor:pointer;
+ transition:0.2s
+}
+
+.tab.active{
+ background:linear-gradient(135deg,#22c55e,#16a34a);
+ box-shadow:0 4px 12px rgba(34,197,94,0.4)
+}
+
+.hidden{display:none}
+
+.history-item{
+ display:flex;
+ justify-content:space-between;
+ padding:6px 0;
+ border-bottom:1px solid #1f2937
+}
+
+.score-good{color:#22c55e}
+.score-mid{color:#facc15}
+.score-bad{color:#ef4444}
+
 </style>
 </head>
 <body>
 
-<h1>🔥 Tracker Pro</h1>
+<h1>BuildYourself</h1>
 <input type="date" id="date">
 
 <div class="section">
@@ -28,35 +106,30 @@ button{background:#22c55e;color:white;font-weight:bold}
 <div id="streakDisplay" class="small"></div>
 </div>
 
-<div class="section">
-<h2>🥗 Food + Macros</h2>
+<div class="tabs">
+<div class="tab active" onclick="showTab('foodTab',this)">🍽</div>
+<div class="tab" onclick="showTab('workoutTab',this)">🏋️</div>
+<div class="tab" onclick="showTab('moodTab',this)">🧠</div>
+</div>
+
+<div id="foodTab" class="section">
 <input type="text" id="food" placeholder="Food">
 <input type="number" id="protein" placeholder="Protein g">
 <input type="number" id="carbs" placeholder="Carbs g">
 <input type="number" id="fats" placeholder="Fats g">
 <button onclick="addMacros()">Add</button>
 <div id="macroList" class="small"></div>
-<div class="total" id="macroTotal"></div>
+<div id="macroTotal" class="total"></div>
 </div>
 
-<div class="section">
-<h2>🏋️ Workout</h2>
+<div id="workoutTab" class="section hidden">
 <input type="text" id="exercise" placeholder="Exercise">
-<input type="text" id="workoutSimple" placeholder="e.g. 3x8 @ 60kg">
+<input type="text" id="workoutSimple" placeholder="3x8 @ 60kg">
 <button onclick="addWorkout()">Add</button>
 <div id="workoutList" class="small"></div>
 </div>
 
-<div class="section">
-<h2>💰 Money</h2>
-<input type="number" id="amount" placeholder="€">
-<input type="text" id="source" placeholder="Source">
-<button onclick="addMoney()">Add</button>
-<div id="moneyTotal" class="total"></div>
-</div>
-
-<div class="section">
-<h2>🧠 Note + Mood</h2>
+<div id="moodTab" class="section hidden">
 <select id="mood">
 <option>😐 Neutral</option>
 <option>🔥 Motivated</option>
@@ -64,20 +137,21 @@ button{background:#22c55e;color:white;font-weight:bold}
 <option>😄 Happy</option>
 <option>😔 Low</option>
 </select>
-<textarea id="note" rows="3"></textarea>
+<textarea id="note" rows="3" placeholder="Your day..."></textarea>
 <button onclick="saveNote()">Save</button>
 <div id="noteDisplay" class="small"></div>
 </div>
 
 <div class="section">
-<h2>📊 History (Last 7 Days)</h2>
-<div id="historyList" class="small"></div>
+<input type="number" id="amount" placeholder="€">
+<input type="text" id="source" placeholder="Source">
+<button onclick="addMoney()">Add</button>
+<div id="moneyTotal" class="total"></div>
 </div>
 
-<div class="section lock" id="proBox">
-<h2>🔒 Pro Features</h2>
-<p class="small">Unlock: Hardcore Mode (streak penalties), Weekly Report</p>
-<button onclick="buyPro()">Unlock Pro (€4.99 demo)</button>
+<div class="section">
+<h2>📊 History</h2>
+<div id="historyList"></div>
 </div>
 
 <script>
@@ -85,13 +159,21 @@ const key=(t,d)=>t+'_'+d;
 const save=(k,d)=>localStorage.setItem(k,JSON.stringify(d));
 const load=(k)=>JSON.parse(localStorage.getItem(k))||[];
 
-function getDate(){ return date.value; }
-function getToday(){ return new Date().toISOString().split('T')[0]; }
+function showTab(id,el){
+ document.querySelectorAll('.section').forEach(s=>{if(s.id) s.classList.add('hidden')});
+ document.getElementById(id).classList.remove('hidden');
+ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+ el.classList.add('active');
+}
+
+function getDate(){return date.value}
+function getToday(){return new Date().toISOString().split('T')[0]}
 
 function addMacros(){
- let entry={food:food.value,p:+protein.value,c:+carbs.value,f:+fats.value};
- let d=load(key('m',getDate())); d.push(entry); save(key('m',getDate()),d);
- renderMacros(); updateScore(); renderHistory();
+ let d=load(key('m',getDate()));
+ d.push({food:food.value,p:+protein.value,c:+carbs.value,f:+fats.value});
+ save(key('m',getDate()),d);
+ renderMacros();updateScore();renderHistory();
  food.value=protein.value=carbs.value=fats.value='';
 }
 
@@ -101,7 +183,7 @@ function renderMacros(){
  let list=d.map(x=>{p+=x.p;c+=x.c;f+=x.f;return `${x.food} → P:${x.p} C:${x.c} F:${x.f}`}).join('\n');
  let cal=p*4+c*4+f*9;
  macroList.innerText=list;
- macroTotal.innerText=`Total → P:${p} C:${c} F:${f} | ${cal} kcal`;
+ macroTotal.innerText=`${cal} kcal`;
 }
 
 function addWorkout(){
@@ -109,28 +191,21 @@ function addWorkout(){
  d.push(`${exercise.value} - ${workoutSimple.value}`);
  save(key('w',getDate()),d);
  workoutList.innerText=d.join('\n');
- updateScore(); renderHistory();
- exercise.value=workoutSimple.value='';
+ updateScore();renderHistory();
 }
 
 function addMoney(){
  let d=load(key('€',getDate()));
  d.push(+amount.value);
  save(key('€',getDate()),d);
- renderMoney(); updateScore(); renderHistory();
- amount.value=source.value='';
-}
-
-function renderMoney(){
- let d=load(key('€',getDate()));
  let total=d.reduce((a,b)=>a+b,0);
- moneyTotal.innerText=`Total: €${total}`;
+ moneyTotal.innerText=`€${total}`;
+ updateScore();renderHistory();
 }
 
 function saveNote(){
- let data={mood:mood.value,text:note.value};
- localStorage.setItem(key('n',getDate()),JSON.stringify(data));
- renderNote(); updateScore(); renderHistory();
+ localStorage.setItem(key('n',getDate()),JSON.stringify({mood:mood.value,text:note.value}));
+ renderNote();updateScore();renderHistory();
  note.value='';
 }
 
@@ -140,60 +215,45 @@ function renderNote(){
 }
 
 function calculateScore(d){
- let score=0;
- if(load(key('m',d)).length>0) score+=25;
- if(load(key('w',d)).length>0) score+=25;
- if(load(key('€',d)).length>0) score+=25;
- if(localStorage.getItem(key('n',d))) score+=25;
- return score;
+ let s=0;
+ if(load(key('m',d)).length) s+=25;
+ if(load(key('w',d)).length) s+=25;
+ if(load(key('€',d)).length) s+=25;
+ if(localStorage.getItem(key('n',d))) s+=25;
+ return s;
 }
 
 function updateScore(){
- let score=calculateScore(getDate());
- scoreDisplay.innerText=`Score: ${score}/100`;
- updateStreak(score);
+ let s=calculateScore(getDate());
+ scoreDisplay.innerText=`Score: ${s}/100`;
+ updateStreak(s);
 }
 
 function updateStreak(score){
  let streak=+localStorage.getItem('streak')||0;
- let lastDate=localStorage.getItem('lastFullDay');
+ let last=localStorage.getItem('lastFullDay');
  let today=getToday();
-
  if(score===100 && getDate()===today){
-   if(lastDate){
-     let diff=(new Date(today)-new Date(lastDate))/(1000*60*60*24);
-     if(diff===1){ streak++; }
-     else if(diff>1){ streak=1; }
-   } else { streak=1; }
-   localStorage.setItem('lastFullDay',today);
-   localStorage.setItem('streak',streak);
+  if(last){
+   let diff=(new Date(today)-new Date(last))/(1000*60*60*24);
+   if(diff===1) streak++; else if(diff>1) streak=1;
+  } else streak=1;
+  localStorage.setItem('lastFullDay',today);
+  localStorage.setItem('streak',streak);
  }
-
- if(localStorage.getItem('pro')==='true' && score<100 && lastDate!==today){
-   streak=0;
-   localStorage.setItem('streak',0);
- }
-
- streakDisplay.innerText=`Streak: ${streak} days`;
+ streakDisplay.innerText=`Streak: ${streak}`;
 }
 
 function renderHistory(){
- let list='';
+ let html='';
  for(let i=0;i<7;i++){
-   let d=new Date();
-   d.setDate(d.getDate()-i);
-   let ds=d.toISOString().split('T')[0];
-   let score=calculateScore(ds);
-   list+=`<div class='history-item'>${ds} → ${score}/100</div>`;
+  let d=new Date(); d.setDate(d.getDate()-i);
+  let ds=d.toISOString().split('T')[0];
+  let s=calculateScore(ds);
+  let cls=s===100?'score-good':s>=50?'score-mid':'score-bad';
+  html+=`<div class='history-item'><span>${ds}</span><span class='${cls}'>${s}</span></div>`;
  }
- historyList.innerHTML=list;
-}
-
-function buyPro(){
- localStorage.setItem('pro','true');
- document.getElementById('proBox').classList.remove('lock');
- document.getElementById('proBox').classList.add('proUnlocked');
- alert('Pro Unlocked (Demo)');
+ historyList.innerHTML=html;
 }
 
 // init
@@ -201,14 +261,9 @@ date.valueAsDate=new Date();
 window.onload=()=>{
  renderMacros();
  workoutList.innerText=load(key('w',getDate())).join('\n');
- renderMoney();
  renderNote();
  updateScore();
  renderHistory();
- if(localStorage.getItem('pro')==='true'){
-   document.getElementById('proBox').classList.remove('lock');
-   document.getElementById('proBox').classList.add('proUnlocked');
- }
 }
 </script>
 
