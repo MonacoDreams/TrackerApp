@@ -110,6 +110,7 @@ button:hover{
 <div class="tab active" onclick="showTab('foodTab',this)">🍽</div>
 <div class="tab" onclick="showTab('workoutTab',this)">🏋️</div>
 <div class="tab" onclick="showTab('moodTab',this)">🧠</div>
+<div class="tab" onclick="showTab('moneyTab',this)">💰</div>
 </div>
 
 <div id="foodTab" class="section">
@@ -142,7 +143,7 @@ button:hover{
 <div id="noteDisplay" class="small"></div>
 </div>
 
-<div class="section">
+<div id="moneyTab" class="section hidden">
 <input type="number" id="amount" placeholder="€">
 <input type="text" id="source" placeholder="Source">
 <button onclick="addMoney()">Add</button>
